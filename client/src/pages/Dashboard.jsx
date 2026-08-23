@@ -86,3 +86,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+//dashboard page showing stats, verification trend, result distribution, and recent verifications
