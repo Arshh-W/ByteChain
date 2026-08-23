@@ -53,3 +53,4 @@ export default function AnalysisPage({ onNext }) {
     </div>
   );
 }
+//analysis page with radial score and pipeline steps, with a button to view results
