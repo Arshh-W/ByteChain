@@ -63,3 +63,4 @@ export default function Landing({ goApp }) {
     </div>
   );
 }
+//landing page with hero section, features, and a sample verification score
