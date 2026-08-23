@@ -50,3 +50,4 @@ export default function CertificatePage({ onNext }) {
     </div>
   );
 }
+//certificate page showing verification details, authenticity score, and a QR code, with buttons to download or share the certificate
