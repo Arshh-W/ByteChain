@@ -55,3 +55,4 @@ export default function BlockchainPage({ onNext }) {
     </div>
   );
 }
+//blockchain verification page with transaction progress and details, with a button to continue
