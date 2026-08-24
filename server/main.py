@@ -13,7 +13,7 @@ ML_IMPORT_ERROR = None
 
 try:
     try:
-        from .ai_engine import predict_image
+        from server.ai_engine import predict_image
     except ImportError:
         from ai_engine import predict_image
 except Exception as exc:  # pragma: no cover - runtime guard for missing ML stack
