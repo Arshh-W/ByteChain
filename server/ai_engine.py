@@ -31,7 +31,15 @@ if ML_SRC_DIR not in sys.path:
 
 # Importing this module loads the trained EfficientNet-B4 weights
 # exactly once. Subsequent requests reuse the same model object.
-from detector import detect_image  # noqa: E402
+# The import is wrapped so the FastAPI app can still boot in a dev
+# environment where the ML runtime is not available yet.
+try:
+    from detector import detect_image  # noqa: E402
+except Exception as exc:  # pragma: no cover - runtime guard for missing ML stack
+    detect_image = None
+    _DETECTOR_IMPORT_ERROR = exc
+else:
+    _DETECTOR_IMPORT_ERROR = None
 
 
 # ---------------------------------------------------------------------------
@@ -66,4 +74,9 @@ def predict_image(file_path: str) -> Dict[str, Any]:
             "fallback_used":    bool,
         }
     """
+    if detect_image is None:
+        raise RuntimeError(
+            "Deepfake detector unavailable. "
+            f"Original import error: {_DETECTOR_IMPORT_ERROR}"
+        )
     return detect_image(file_path)

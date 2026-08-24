@@ -4,3 +4,6 @@ sqlalchemy
 aiofiles
 python-multipart
 pillow
+opencv-python-headless
+torch
+torchvision

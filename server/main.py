@@ -9,10 +9,16 @@ import uuid
 import uvicorn
 import aiofiles
 
+ML_IMPORT_ERROR = None
+
 try:
-    from .ai_engine import predict_image
-except ImportError:
-    from ai_engine import predict_image
+    try:
+        from .ai_engine import predict_image
+    except ImportError:
+        from ai_engine import predict_image
+except Exception as exc:  # pragma: no cover - runtime guard for missing ML stack
+    predict_image = None
+    ML_IMPORT_ERROR = exc
 
 # Initialize FastAPI app
 app = FastAPI(title="ByteChain Verify API")
@@ -103,6 +109,15 @@ async def upload_and_analyze_image(file: UploadFile = File(...)):
 
         # Calculate cryptographic SHA-256 hash
         file_hash = await compute_sha256_async(temp_file_path)
+
+        if predict_image is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Deepfake model backend is unavailable. "
+                    f"Original error: {ML_IMPORT_ERROR}"
+                ),
+            )
 
         # Run the production deepfake detector exactly once per request
         # and derive both the legacy (confidence_score, is_tampered) and
