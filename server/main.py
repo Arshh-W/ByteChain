@@ -4,10 +4,14 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime
 import hashlib
-import shutil
 import os
 import uuid
 import uvicorn
+
+try:
+    from .ai_engine import analyze_image
+except ImportError:
+    from ai_engine import analyze_image
 
 #Intializing FastAPI app
 app = FastAPI(title="ByteChain Verify API")
@@ -16,12 +20,13 @@ app = FastAPI(title="ByteChain Verify API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"], #development server( gotta change for deployment)
-    allow_credentials=Truec,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-TEMP_DIR = "temp_uploads"
+SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMP_DIR = os.path.join(SERVER_DIR, "temp_uploads")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 
@@ -67,13 +72,10 @@ import aiofiles
 
 #Analyze route
 
-def analyze_media_stub(temp_file_path: str):
-    #AI logic here 
-   
-    return 
-
 @app.post("/api/analyze")
-async def upload_and_analyze_video(file: UploadFile = File(...)):
+async def upload_and_analyze_image(file: UploadFile = File(...)):
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Only image files are supported")
     
     file_id = str(uuid.uuid4())
     file_ext = os.path.splitext(file.filename)[1]
@@ -89,8 +91,7 @@ async def upload_and_analyze_video(file: UploadFile = File(...)):
         # Computing SHA hash of the uploaded file
         file_hash = await compute_sha256_async(temp_file_path)
 
-        # Ai Forensic Analysis ( abhi dummy h, change krna h ye )
-        confidence_score, is_tampered_bool = analyze_media_stub(temp_file_path)
+        confidence_score, is_tampered_bool = analyze_image(temp_file_path)
         
         # Convert boolean to DB integer
         is_tampered_db = 1 if is_tampered_bool else 0
@@ -118,25 +119,22 @@ async def upload_and_analyze_video(file: UploadFile = File(...)):
         db.close()
 
 
-        # Return  JSON response to frontend
+        # Keep this response aligned with the confirmed frontend contract.
         return {
-            "status": "success",
             "filename": file.filename,
-            "file_hash": file_hash,
-            "ai_confidence": {
-                "score": confidence_score,
-                "is_tampered": is_tampered_bool
-            },
-            "is_registered_on_chain": False, # web3 work needed here
-            "timestamp": log_entry.upload_timestamp
+            "is_tampered": is_tampered_bool,
+            "confidence_score": confidence_score,
+            "sha256_hash": file_hash,
         }
 
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        # Clean up temp file on error
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
         print(f"Error processing upload: {e}")
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+    finally:
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
 
 
 if __name__ == "__main__":

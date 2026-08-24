@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { CheckCircle2, PlayCircle } from "lucide-react";
 import Logo from "../components/Logo";
 import { Panel } from "../components/Panel";
@@ -6,37 +6,83 @@ import { PrimaryButton, GhostButton } from "../components/Buttons";
 import RadialScore from "../components/RadialScore";
 
 export default function Landing({ goApp }) {
+  const [showDemo, setShowDemo] = useState(false);
+  const [walletStatus, setWalletStatus] = useState("Connect Wallet");
+
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      setWalletStatus("Wallet unavailable");
+      return;
+    }
+
+    try {
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      setWalletStatus(accounts[0] ? "Wallet Connected" : "Connect Wallet");
+    } catch {
+      setWalletStatus("Connection cancelled");
+    }
+  };
+
   return (
-    <div className="min-h-screen text-slate-100" style={{ background: "#05060c" }}>
+    <div
+      className="min-h-screen text-slate-100"
+      style={{ background: "#05060c" }}
+    >
       <div className="flex items-center justify-between px-10 py-5 border-b border-slate-900">
         <Logo />
         <div className="hidden md:flex items-center gap-8 text-sm text-slate-400">
-          <span>Product</span><span>How It Works</span><span>Technology</span><span>Pricing</span>
+          <span>Product</span>
+          <span>How It Works</span>
+          <span>Technology</span>
+          <span>Pricing</span>
         </div>
         <div className="flex items-center gap-4">
-          <button onClick={() => goApp("dashboard")} className="text-sm text-slate-400">Dashboard</button>
-          <PrimaryButton onClick={() => goApp("dashboard")}>Connect Wallet</PrimaryButton>
+          <button
+            onClick={() => goApp("dashboard")}
+            className="text-sm text-slate-400"
+          >
+            Dashboard
+          </button>
+          <PrimaryButton onClick={connectWallet}>{walletStatus}</PrimaryButton>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-10 py-20 grid md:grid-cols-2 gap-14 items-center">
         <div>
-          <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-6"
-            style={{ background: "rgba(168,85,247,0.15)", color: "#c4b5fd" }}>
+          <span
+            className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-6"
+            style={{ background: "rgba(168,85,247,0.15)", color: "#c4b5fd" }}
+          >
             AI-POWERED MEDIA VERIFICATION
           </span>
           <h1 className="text-5xl font-bold leading-tight mb-6">
-            Detect Deepfakes.<br />Verify Authenticity.<br />
-            <span style={{ background: "linear-gradient(90deg,#a855f7,#3b82f6)", WebkitBackgroundClip: "text", color: "transparent" }}>
+            Detect Deepfakes.
+            <br />
+            Verify Authenticity.
+            <br />
+            <span
+              style={{
+                background: "linear-gradient(90deg,#a855f7,#3b82f6)",
+                WebkitBackgroundClip: "text",
+                color: "transparent",
+              }}
+            >
               Trust the Truth.
             </span>
           </h1>
           <p className="text-slate-400 mb-8 max-w-md">
-            Advanced AI detects manipulated media. Blockchain ensures tamper-proof verification.
+            Advanced AI detects manipulated media. Blockchain ensures
+            tamper-proof verification.
           </p>
           <div className="flex gap-4">
-            <PrimaryButton onClick={() => goApp("upload")}>Verify a Video</PrimaryButton>
-            <GhostButton><PlayCircle size={16} /> Watch Demo</GhostButton>
+            <PrimaryButton onClick={() => goApp("upload")}>
+              Verify an Image
+            </PrimaryButton>
+            <GhostButton onClick={() => setShowDemo(true)}>
+              <PlayCircle size={16} /> Watch Demo
+            </GhostButton>
           </div>
           <div className="grid grid-cols-2 gap-6 mt-14 text-sm">
             {[
@@ -54,12 +100,41 @@ export default function Landing({ goApp }) {
         </div>
 
         <Panel className="p-8 flex flex-col items-center justify-center">
-          <RadialScore value={93} color="#22d3ee" label="CONFIDENCE" sub="SCORE" />
+          <RadialScore
+            value={93}
+            color="#22d3ee"
+            label="CONFIDENCE"
+            sub="SCORE"
+          />
           <div className="mt-6 flex items-center gap-2 text-emerald-400 text-sm font-semibold">
             <CheckCircle2 size={16} /> VERIFIED
           </div>
         </Panel>
       </div>
+      {showDemo && (
+        <div
+          className="fixed inset-0 z-10 flex items-center justify-center bg-black/70 p-6"
+          role="dialog"
+          aria-modal="true"
+        >
+          <Panel className="max-w-md w-full p-8">
+            <h2 className="text-lg font-semibold text-slate-100 mb-3">
+              Image verification demo
+            </h2>
+            <p className="text-sm text-slate-400 mb-6">
+              Choose an image to run the live integrity analysis.
+            </p>
+            <div className="flex justify-end gap-3">
+              <GhostButton onClick={() => setShowDemo(false)}>
+                Close
+              </GhostButton>
+              <PrimaryButton onClick={() => goApp("upload")}>
+                Try It
+              </PrimaryButton>
+            </div>
+          </Panel>
+        </div>
+      )}
     </div>
   );
 }

@@ -34,7 +34,11 @@ export default function App() {
       <Sidebar page={page} setPage={setPage} />
       <div className="flex-1 overflow-auto">
         {page === "upload" && (
-          <UploadPage onNext={next} onAnalyzed={setAnalysisResult} />
+          <UploadPage
+            onNext={next}
+            onAnalyzed={setAnalysisResult}
+            onNavigate={setPage}
+          />
         )}
         {page === "analysis" && <AnalysisPage onNext={next} />}
         {page === "results" && (
@@ -43,7 +47,7 @@ export default function App() {
         {page === "blockchain" && <BlockchainPage onNext={next} />}
         {page === "success" && <SuccessPage onNext={next} />}
         {page === "certificate" && <CertificatePage onNext={next} />}
-        {page === "dashboard" && <DashboardPage />}
+        {page === "dashboard" && <DashboardPage onNavigate={setPage} />}
       </div>
     </div>
   );

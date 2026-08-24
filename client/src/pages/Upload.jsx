@@ -1,16 +1,11 @@
 import React, { useRef, useState } from "react";
-import {
-  UploadCloud,
-  CheckCircle2,
-  PlayCircle,
-  ChevronRight,
-} from "lucide-react";
+import { UploadCloud, CheckCircle2, Image, ChevronRight } from "lucide-react";
 import { Panel, PanelHeader } from "../components/Panel";
 import { PrimaryButton } from "../components/Buttons";
 import { RECENT_UPLOADS } from "../data/mockData";
 import { analyzeFile } from "../api/client";
 
-export default function UploadPage({ onNext, onAnalyzed }) {
+export default function UploadPage({ onNext, onAnalyzed, onNavigate }) {
   const fileInput = useRef(null);
   const [file, setFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +20,7 @@ export default function UploadPage({ onNext, onAnalyzed }) {
 
   const submitFile = async () => {
     if (!file) {
-      setError("Choose a video before starting the analysis.");
+      setError("Choose an image before starting the analysis.");
       return;
     }
 
@@ -48,8 +43,8 @@ export default function UploadPage({ onNext, onAnalyzed }) {
         <Panel>
           <PanelHeader
             step="01"
-            title="Upload Video"
-            subtitle="Upload your video for authenticity analysis"
+            title="Upload Image"
+            subtitle="Upload your image for authenticity analysis"
           />
           <div className="p-8">
             <div
@@ -65,24 +60,24 @@ export default function UploadPage({ onNext, onAnalyzed }) {
                 <UploadCloud size={26} className="text-white" />
               </div>
               <p className="text-slate-300 text-sm mb-1">
-                Drag & drop your video here
+                Drag & drop your image here
               </p>
               <p className="text-slate-600 text-xs mb-5">or</p>
               <input
                 type="file"
                 ref={fileInput}
                 className="hidden"
-                accept="video/mp4,video/quicktime,video/x-msvideo"
+                accept="image/jpeg,image/png,image/webp,image/bmp,image/gif,image/tiff"
                 onChange={(e) => selectFile(e.target.files?.[0])}
               />
               <PrimaryButton onClick={() => fileInput.current?.click()}>
                 Choose File
               </PrimaryButton>
               <p className="text-[11px] text-slate-600 mt-5">
-                MP4, MOV, AVI up to 500MB
+                JPG, PNG, WEBP, BMP, GIF, or TIFF
               </p>
               <p className="text-[11px] text-slate-600">
-                Best results with videos &lt; 5 minutes
+                Best results with clear images at least 128px wide
               </p>
             </div>
             {file && (
@@ -115,7 +110,7 @@ export default function UploadPage({ onNext, onAnalyzed }) {
                   ? "Analyzing..."
                   : hasSubmitted
                     ? "View Results"
-                    : "Analyze Video"}
+                    : "Analyze Image"}
                 {!isLoading && <ChevronRight size={14} className="inline" />}
               </PrimaryButton>
             </div>
@@ -147,13 +142,19 @@ export default function UploadPage({ onNext, onAnalyzed }) {
             <p className="text-xs font-semibold text-slate-300">
               Recent Uploads
             </p>
-            <span className="text-[11px] text-purple-400">View all</span>
+            <button
+              type="button"
+              onClick={() => onNavigate("dashboard")}
+              className="text-[11px] text-purple-400"
+            >
+              View all
+            </button>
           </div>
           <ul className="space-y-3">
             {RECENT_UPLOADS.map((u) => (
               <li key={u.name} className="flex items-center gap-3 text-xs">
                 <div className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400">
-                  <PlayCircle size={14} />
+                  <Image size={14} />
                 </div>
                 <div>
                   <p className="text-slate-300">{u.name}</p>
