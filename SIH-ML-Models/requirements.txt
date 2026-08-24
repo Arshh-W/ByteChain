@@ -4,7 +4,7 @@ torch==2.2.2+cpu
 torchvision==0.17.2+cpu
 
 # Core numeric & imaging (pinned to 1.x to avoid PyTorch binary conflict)
-numpy>=1.26.0,<2.0.0
+numpy<2.0.0
 pillow
 
 # Server & Headless OpenCV
