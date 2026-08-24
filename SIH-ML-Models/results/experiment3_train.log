@@ -1,0 +1,56 @@
+Using device: cpu
+Output path:  C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+Experiment 3: training augmentation is DISABLED.
+
+[1/5] Collecting samples and splitting dataset...
+  Total samples: 400 (real=200, fake=200)
+  Split sizes: train=280, val=60, test=60
+  pos_weight (for BCE loss): 1.000
+
+[2/5] Building model...
+
+[3/5] Stage 1: training head with frozen backbone
+  Trainable params: 229,633 / 17,778,249
+  Stage 1 epoch 1/5 | train loss=0.6942 acc=50.00% prec=0.500 rec=1.000 f1=0.667 auc=0.493 | val loss=0.6946 acc=50.00% prec=0.500 rec=1.000 f1=0.667 auc=0.442
+    -> New best val_loss; saved checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\stage1_best_augoff.pth
+  Stage 1 epoch 2/5 | train loss=0.6889 acc=51.07% prec=0.505 rec=1.000 f1=0.671 auc=0.681 | val loss=0.6904 acc=50.00% prec=0.500 rec=1.000 f1=0.667 auc=0.698
+    -> New best val_loss; saved checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\stage1_best_augoff.pth
+  Stage 1 epoch 3/5 | train loss=0.6844 acc=52.14% prec=0.511 rec=1.000 f1=0.676 auc=0.786 | val loss=0.6858 acc=50.00% prec=0.500 rec=1.000 f1=0.667 auc=0.788
+    -> New best val_loss; saved checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\stage1_best_augoff.pth
+  Stage 1 epoch 4/5 | train loss=0.6816 acc=54.64% prec=0.525 rec=0.993 f1=0.686 auc=0.796 | val loss=0.6804 acc=50.00% prec=0.500 rec=0.933 f1=0.651 auc=0.830
+    -> New best val_loss; saved checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\stage1_best_augoff.pth
+  Stage 1 epoch 5/5 | train loss=0.6770 acc=57.86% prec=0.544 rec=0.964 f1=0.696 auc=0.819 | val loss=0.6763 acc=53.33% prec=0.519 rec=0.933 f1=0.667 auc=0.836
+    -> New best val_loss; saved checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\stage1_best_augoff.pth
+  Restored best Stage 1 checkpoint (val_loss=0.6763)
+
+[4/5] Stage 2: unfreezing last 2 blocks of backbone
+  Trainable params: 5,506,037 / 17,778,249
+  Stage 2 epoch 1/10 | train loss=0.6738 acc=62.86% prec=0.580 rec=0.929 f1=0.714 auc=0.808 | val loss=0.6700 acc=58.33% prec=0.549 rec=0.933 f1=0.691 auc=0.837
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 2/10 | train loss=0.6668 acc=64.64% prec=0.591 rec=0.950 f1=0.729 auc=0.842 | val loss=0.6665 acc=58.33% prec=0.549 rec=0.933 f1=0.691 auc=0.822
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 3/10 | train loss=0.6582 acc=72.86% prec=0.670 rec=0.900 f1=0.768 auc=0.863 | val loss=0.6563 acc=73.33% prec=0.684 rec=0.867 f1=0.765 auc=0.843
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 4/10 | train loss=0.6555 acc=70.71% prec=0.653 rec=0.886 f1=0.752 auc=0.823 | val loss=0.6536 acc=61.67% prec=0.571 rec=0.933 f1=0.709 auc=0.812
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 5/10 | train loss=0.6369 acc=76.07% prec=0.687 rec=0.957 f1=0.800 auc=0.903 | val loss=0.6420 acc=68.33% prec=0.634 rec=0.867 f1=0.732 auc=0.826
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 6/10 | train loss=0.6334 acc=74.64% prec=0.691 rec=0.893 f1=0.779 auc=0.854 | val loss=0.6328 acc=68.33% prec=0.641 rec=0.833 f1=0.725 auc=0.822
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 7/10 | train loss=0.6134 acc=80.00% prec=0.750 rec=0.900 f1=0.818 auc=0.881 | val loss=0.6209 acc=70.00% prec=0.650 rec=0.867 f1=0.743 auc=0.822
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 8/10 | train loss=0.6038 acc=77.50% prec=0.731 rec=0.871 f1=0.795 auc=0.873 | val loss=0.6112 acc=70.00% prec=0.650 rec=0.867 f1=0.743 auc=0.816
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 9/10 | train loss=0.5937 acc=77.86% prec=0.747 rec=0.843 f1=0.792 auc=0.856 | val loss=0.5991 acc=68.33% prec=0.657 rec=0.767 f1=0.708 auc=0.827
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Stage 2 epoch 10/10 | train loss=0.5769 acc=77.14% prec=0.738 rec=0.843 f1=0.787 auc=0.869 | val loss=0.5903 acc=66.67% prec=0.639 rec=0.767 f1=0.697 auc=0.821
+    -> New best val_loss; saved FINAL checkpoint to C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+
+[5/5] Training complete.
+  Best validation loss: 0.5903
+  Final model saved to: C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+
+Next step: run evaluation with the augmented-off weights.
+  The existing src/evaluate.py is NOT modified. To point it at the
+  new weights without editing the file, run:
+    python -c "import evaluate; evaluate.MODEL_PATH = 'models/deepfake_b4_augoff.pth'; import runpy; runpy.run_module('evaluate', run_name='__main__')"

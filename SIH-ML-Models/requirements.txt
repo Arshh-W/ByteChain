@@ -1,0 +1,15 @@
+# Deepfake detection (EfficientNet-B4) — minimal dependencies
+# Install with: pip install -r requirements.txt
+
+# Core deep learning
+torch
+torchvision
+
+# Image I/O and face detection
+opencv-python
+numpy
+Pillow
+
+# Training and evaluation
+scikit-learn
+matplotlib

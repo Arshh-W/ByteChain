@@ -1,0 +1,96 @@
+======================================================================
+Experiment 3 — evaluating AUGMENTATION-OFF weights
+======================================================================
+  Model path  : C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+  Report path : C:\Users\Akarsh\Desktop\SIH-ML-Models\results\experiment3_augoff_report.txt
+  CM (0.5)    : C:\Users\Akarsh\Desktop\SIH-ML-Models\results\confusion_matrix_threshold_0.5_augoff.png
+  CM (tuned)  : C:\Users\Akarsh\Desktop\SIH-ML-Models\results\confusion_matrix_tuned_augoff.png
+  Prob hist   : C:\Users\Akarsh\Desktop\SIH-ML-Models\results\validation_probability_distribution_augoff.png
+======================================================================
+Using device: cpu
+
+[1/5] Rebuilding stratified train/val/test split (SEED=42)...
+  Total samples: 400
+  Validation samples: 60
+  Test samples      : 60
+
+[2/5] Loading model from C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth...
+Loaded trained weights from: C:\Users\Akarsh\Desktop\SIH-ML-Models\models\deepfake_b4_augoff.pth
+
+[3/5] Running inference on the VALIDATION set...
+
+Validation probability summary:
+  0: min=0.3258, max=0.6173, mean=0.4641, median=0.4643, n=30
+  1: min=0.3338, max=0.7910, mean=0.5896, median=0.6134, n=30
+  Probability histogram saved to: C:\Users\Akarsh\Desktop\SIH-ML-Models\results\validation_probability_distribution_augoff.png
+
+[4/5] Sweeping classification thresholds on the VALIDATION set...
+
+Validation threshold analysis
+======================================================================
+At default threshold 0.5 (validation):
+  0.5 default           : thr=0.50  acc= 66.67%  prec=0.6389  rec=0.7667  f1=0.6970  spec=0.5667  balacc=0.6667  J=0.3333
+
+Best F1 threshold (validation):
+  F1-optimal            : thr=0.45  acc= 71.67%  prec=0.6512  rec=0.9333  f1=0.7671  spec=0.5000  balacc=0.7167  J=0.4333
+
+Best Balanced Accuracy threshold (validation):
+  Balanced Acc          : thr=0.55  acc= 78.33%  prec=0.8696  rec=0.6667  f1=0.7547  spec=0.9000  balacc=0.7833  J=0.5667
+
+Best Youden's J threshold (validation) [PRIMARY OPERATING POINT]:
+  Youden J              : thr=0.55  acc= 78.33%  prec=0.8696  rec=0.6667  f1=0.7547  spec=0.9000  balacc=0.7833  J=0.5667
+======================================================================
+
+Frozen operating threshold (from validation, Youden J): 0.55
+
+[5/5] Running inference on the TEST set...
+
+======================================================================
+TEST RESULTS — threshold 0.5 (baseline)
+======================================================================
+  Samples evaluated  : 60
+  Accuracy           : 83.33%
+  Precision (fake)   : 0.7941
+  Recall (fake)      : 0.9000
+  F1                 : 0.8438
+  Specificity (real) : 0.7667
+  Balanced accuracy  : 0.8333
+  ROC-AUC            : 0.9111
+  Confusion matrix (rows=actual, cols=predicted):
+  [[23  7]
+ [ 3 27]]
+======================================================================
+  Confusion matrix saved to: C:\Users\Akarsh\Desktop\SIH-ML-Models\results\confusion_matrix_threshold_0.5_augoff.png
+
+======================================================================
+TEST RESULTS — validation-selected threshold = 0.55
+======================================================================
+  Samples evaluated  : 60
+  Accuracy           : 90.00%
+  Precision (fake)   : 0.9286
+  Recall (fake)      : 0.8667
+  F1                 : 0.8966
+  Specificity (real) : 0.9333
+  Balanced accuracy  : 0.9000
+  ROC-AUC            : 0.9111
+  Confusion matrix (rows=actual, cols=predicted):
+  [[28  2]
+ [ 4 26]]
+======================================================================
+  Confusion matrix saved to: C:\Users\Akarsh\Desktop\SIH-ML-Models\results\confusion_matrix_tuned_augoff.png
+
+======================================================================
+SIDE-BY-SIDE COMPARISON
+======================================================================
+  Metric              | threshold=0.5 | threshold=0.55
+  --------------------+---------------+-----------------
+  Accuracy (%)        |         83.33 |           90.00
+  Precision           |        0.7941 |          0.9286
+  Recall              |        0.9000 |          0.8667
+  F1                  |        0.8438 |          0.8966
+  Specificity         |        0.7667 |          0.9333
+  Balanced acc.       |        0.8333 |          0.9000
+  ROC-AUC             | 0.9111     | 0.9111
+======================================================================
+
+  Full report saved to: C:\Users\Akarsh\Desktop\SIH-ML-Models\results\experiment3_augoff_report.txt

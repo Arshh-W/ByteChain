@@ -1,0 +1,12 @@
+Test Set Results
+================
+Samples evaluated : 60
+Accuracy          : 51.6667%
+Precision (fake)  : 0.5085
+Recall (fake)     : 1.0000
+F1 score          : 0.6742
+ROC-AUC           : 0.9222
+
+Confusion matrix (rows = actual, cols = predicted):
+[[ 1 29]
+ [ 0 30]]

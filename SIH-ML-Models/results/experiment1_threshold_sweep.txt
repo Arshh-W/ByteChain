@@ -1,0 +1,49 @@
+Experiment 1: Validation-set threshold sweep
+============================================
+
+Validation probability summary
+-----------------------------
+  0: min=0.4916, max=0.5422, mean=0.5175, median=0.5165, n=30
+  1: min=0.4933, max=0.5669, mean=0.5310, median=0.5323, n=30
+
+Validation metrics at default 0.5 threshold
+-------------------------------------------
+  accuracy: 0.483333
+  precision: 0.491228
+  recall: 0.933333
+  f1: 0.643678
+  specificity: 0.033333
+  balanced_accuracy: 0.483333
+  youden_j: -0.033333
+  roc_auc: 0.790000
+
+Best thresholds (validation):
+  F1-optimal threshold            : 0.52
+  Balanced-Acc optimal threshold  : 0.52
+  Youden-J optimal threshold      : 0.52  <-- OPERATING
+
+Test results at threshold 0.5 (baseline)
+-----------------------------------------
+  accuracy: 0.516667
+  precision: 0.508475
+  recall: 1.000000
+  f1: 0.674157
+  specificity: 0.033333
+  balanced_accuracy: 0.516667
+  roc_auc: 0.922222
+  confusion_matrix:
+  [[ 1 29]
+ [ 0 30]]
+
+Test results at threshold 0.52 (validation-tuned)
+--------------------------------------------------
+  accuracy: 0.800000
+  precision: 0.736842
+  recall: 0.933333
+  f1: 0.823529
+  specificity: 0.666667
+  balanced_accuracy: 0.800000
+  roc_auc: 0.922222
+  confusion_matrix:
+  [[20 10]
+ [ 2 28]]
