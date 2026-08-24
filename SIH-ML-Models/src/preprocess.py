@@ -10,24 +10,14 @@ from torchvision import transforms
 IMAGE_SIZE = 380
 MARGIN = 0.20
 
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-CASCADE_PATH = os.path.join(
-    BASE_DIR,
-    "haarcascade_frontalface_default.xml"
-)
-
-if not os.path.exists(CASCADE_PATH):
-    raise FileNotFoundError(
-        f"Haar cascade not found: {CASCADE_PATH}"
-    )
+# Use OpenCV's built-in Haar cascade path directly from the package
+CASCADE_PATH = os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
 
 face_cascade = cv2.CascadeClassifier(CASCADE_PATH)
 
 if face_cascade.empty():
     raise RuntimeError(
-        "Failed to load Haar cascade"
+        f"Failed to load Haar cascade from built-in path: {CASCADE_PATH}"
     )
 
 
@@ -45,38 +35,7 @@ val_transform = transforms.Compose([
     ),
 ])
 
-
-# Experiment 3: training augmentation is DISABLED to test the hypothesis
-# that per-image augmentation on 280 images is collapsing the logit band.
-# The original (HFlip + Rotation(5) + ColorJitter) list is preserved below
-# as a comment so it can be restored after the experiment.
-#
-# ---- BEGIN: original train_transform (kept as reference) ----
-# (Do not uncomment without also setting val_transform / train_transform
-#  ordering back if needed. This block is documentation only.)
-#
-# train_transform_original = transforms.Compose([
-#     transforms.ToPILImage(),
-#     transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-#     transforms.RandomHorizontalFlip(p=0.5),
-#     transforms.RandomRotation(degrees=5),
-#     transforms.ColorJitter(
-#         brightness=0.2,
-#         contrast=0.2
-#     ),
-#     transforms.ToTensor(),
-#     transforms.Normalize(
-#         mean=IMAGENET_MEAN,
-#         std=IMAGENET_STD
-#     ),
-# ])
-#
-# ---- END: original train_transform ----
-#
-# For this experiment, train_transform == val_transform (no augmentation).
 train_transform = val_transform
-
-
 test_transform = val_transform
 
 

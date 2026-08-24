@@ -4,6 +4,6 @@ sqlalchemy
 aiofiles
 python-multipart
 pillow
-opencv-python-headless
+opencv-python-headless==4.10.0.84
 torch
 torchvision
