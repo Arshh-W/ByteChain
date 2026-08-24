@@ -1,17 +1,16 @@
-# Deepfake detection (EfficientNet-B4) — minimal dependencies
-# Install with: pip install -r requirements.txt
+# PyTorch CPU Index (prevents heavy GPU allocations and startup OOM)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
 
-# Core deep learning
-torch
-torchvision
+# Core numeric & imaging (pinned to 1.x to avoid PyTorch binary conflict)
+numpy>=1.26.0,<2.0.0
+pillow
 
-# Image I/O and face detection
-opencv-python
-numpy
-Pillow
-
-# Training and evaluation
-scikit-learn
-matplotlib
-
-ollama
+# Server & Headless OpenCV
+fastapi
+uvicorn
+sqlalchemy
+aiofiles
+python-multipart
+opencv-python-headless==4.10.0.84
