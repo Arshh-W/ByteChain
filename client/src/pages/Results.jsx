@@ -26,10 +26,32 @@ export default function ResultsPage({ onNext, analysisResult }) {
   const confidencePercent = Number.isFinite(confidence)
     ? Math.round((confidence <= 1 ? confidence * 100 : confidence) * 10) / 10
     : null;
-  const resultLabel = analysisResult.is_tampered
-    ? "Likely tampered"
-    : "No tampering detected";
-  const resultColor = analysisResult.is_tampered ? "#fb7185" : "#22d3ee";
+  const hasPrediction =
+    typeof analysisResult.prediction === "string" &&
+    (analysisResult.prediction === "REAL" ||
+      analysisResult.prediction === "FAKE");
+  const resultLabel = hasPrediction
+    ? analysisResult.prediction
+    : analysisResult.is_tampered
+      ? "Likely tampered"
+      : "No tampering detected";
+  const resultColor =
+    hasPrediction
+      ? analysisResult.prediction === "FAKE"
+        ? "#fb7185"
+        : "#22d3ee"
+      : analysisResult.is_tampered
+        ? "#fb7185"
+        : "#22d3ee";
+
+  const fakePercent =
+    analysisResult.fake_probability !== undefined
+      ? Math.round(Number(analysisResult.fake_probability) * 1000) / 10
+      : null;
+  const realPercent =
+    analysisResult.real_probability !== undefined
+      ? Math.round(Number(analysisResult.real_probability) * 1000) / 10
+      : null;
 
   return (
     <div className="grid grid-cols-3 gap-6 p-6">
@@ -68,6 +90,54 @@ export default function ResultsPage({ onNext, analysisResult }) {
                       : `${confidencePercent}%`}
                   </span>
                 </p>
+                {hasPrediction && (
+                  <>
+                    <p className="text-slate-500">
+                      Prediction:{" "}
+                      <span
+                        className="font-semibold"
+                        style={{ color: resultColor }}
+                      >
+                        {analysisResult.prediction}
+                      </span>
+                    </p>
+                    {fakePercent !== null && (
+                      <p className="text-slate-500">
+                        Fake probability:{" "}
+                        <span className="text-slate-300">
+                          {fakePercent}%
+                        </span>
+                      </p>
+                    )}
+                    {realPercent !== null && (
+                      <p className="text-slate-500">
+                        Real probability:{" "}
+                        <span className="text-slate-300">
+                          {realPercent}%
+                        </span>
+                      </p>
+                    )}
+                    {typeof analysisResult.face_detected === "boolean" && (
+                      <p className="text-slate-500">
+                        Face detected:{" "}
+                        <span className="text-slate-300">
+                          {analysisResult.face_detected ? "Yes" : "No"}
+                          {analysisResult.fallback_used
+                            ? " (full-image fallback)"
+                            : ""}
+                        </span>
+                      </p>
+                    )}
+                    {typeof analysisResult.threshold === "number" && (
+                      <p className="text-slate-500">
+                        Threshold:{" "}
+                        <span className="text-slate-300">
+                          {analysisResult.threshold}
+                        </span>
+                      </p>
+                    )}
+                  </>
+                )}
                 <p className="text-slate-500">
                   SHA-256:{" "}
                   <span className="text-slate-300 break-all">
@@ -103,10 +173,45 @@ export default function ResultsPage({ onNext, analysisResult }) {
         <Panel className="p-5">
           <p className="text-xs font-semibold text-slate-300 mb-3">Findings</p>
           <ul className="space-y-2 text-xs text-slate-500">
-            <li className="flex gap-2">
-              <Info size={13} className="text-slate-500 mt-0.5 shrink-0" />
-              Detailed findings are not provided by the current API.
-            </li>
+            {hasPrediction ? (
+              <>
+                <li className="flex gap-2">
+                  <Info size={13} className="mt-0.5 shrink-0" style={{ color: resultColor }} />
+                  <span>
+                    Deepfake classifier predicts{" "}
+                    <span className="text-slate-300">
+                      {analysisResult.prediction}
+                    </span>
+                    {fakePercent !== null && (
+                      <>
+                        {" "}with <span className="text-slate-300">{fakePercent}%</span> fake probability.
+                      </>
+                    )}
+                  </span>
+                </li>
+                {typeof analysisResult.face_detected === "boolean" && (
+                  <li className="flex gap-2">
+                    <Info size={13} className="text-slate-500 mt-0.5 shrink-0" />
+                    <span>
+                      Face detection:{" "}
+                      <span className="text-slate-300">
+                        {analysisResult.face_detected
+                          ? "Detected"
+                          : "No face found"}
+                      </span>
+                      {analysisResult.fallback_used
+                        ? " — classifier used the full image as fallback."
+                        : "."}
+                    </span>
+                  </li>
+                )}
+              </>
+            ) : (
+              <li className="flex gap-2">
+                <Info size={13} className="text-slate-500 mt-0.5 shrink-0" />
+                Detailed findings are not provided by the current API.
+              </li>
+            )}
           </ul>
         </Panel>
         <Panel className="p-5">

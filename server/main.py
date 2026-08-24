@@ -10,9 +10,9 @@ import uvicorn
 import aiofiles
 
 try:
-    from .ai_engine import analyze_image
+    from .ai_engine import predict_image
 except ImportError:
-    from ai_engine import analyze_image
+    from ai_engine import predict_image
 
 # Initialize FastAPI app
 app = FastAPI(title="ByteChain Verify API")
@@ -72,7 +72,19 @@ async def compute_sha256_async(file_path: str) -> str:
 def health_check():
     return {"status": "ByteChain API operational", "timestamp": datetime.utcnow()}
 
-# Analysis Endpoint
+
+#Analyze route
+
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "ByteChain Verify API"}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
 @app.post("/api/analyze")
 async def upload_and_analyze_image(file: UploadFile = File(...)):
     if not file.content_type or not file.content_type.startswith("image/"):
@@ -92,8 +104,13 @@ async def upload_and_analyze_image(file: UploadFile = File(...)):
         # Calculate cryptographic SHA-256 hash
         file_hash = await compute_sha256_async(temp_file_path)
 
-        # Execute Deepfake ML Detection Model via ai_engine
-        confidence_score, is_tampered_bool = analyze_image(temp_file_path)
+        # Run the production deepfake detector exactly once per request
+        # and derive both the legacy (confidence_score, is_tampered) and
+        # the rich (prediction, fake/real_probability, face_detected, ...)
+        # response fields from the same result.
+        prediction = predict_image(temp_file_path)
+        confidence_score = float(prediction["confidence"])
+        is_tampered_bool = bool(prediction["prediction"] == "FAKE")
         is_tampered_db = 1 if is_tampered_bool else 0
 
         # Save result to SQLite database
@@ -118,10 +135,19 @@ async def upload_and_analyze_image(file: UploadFile = File(...)):
 
         # Contract matching frontend expected response keys
         return {
+            "success": True,
             "filename": file.filename,
             "is_tampered": is_tampered_bool,
             "confidence_score": round(confidence_score, 4),
             "sha256_hash": file_hash,
+            # Rich prediction fields from the production deepfake detector.
+            "prediction": prediction["prediction"],
+            "confidence": prediction["confidence"],
+            "fake_probability": prediction["fake_probability"],
+            "real_probability": prediction["real_probability"],
+            "threshold": prediction["threshold"],
+            "face_detected": prediction["face_detected"],
+            "fallback_used": prediction["fallback_used"],
         }
 
     except ValueError as e:
@@ -132,6 +158,17 @@ async def upload_and_analyze_image(file: UploadFile = File(...)):
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
+
+
+# Register POST /predict as an alias of /api/analyze so the endpoint
+# works for clients hitting either path. The actual implementation is
+# upload_and_analyze_image above.
+app.add_api_route(
+    "/predict",
+    upload_and_analyze_image,
+    methods=["POST"],
+)
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
