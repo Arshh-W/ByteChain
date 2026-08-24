@@ -13,3 +13,5 @@ Pillow
 # Training and evaluation
 scikit-learn
 matplotlib
+
+ollama
