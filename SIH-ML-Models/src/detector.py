@@ -28,8 +28,8 @@ Pipeline (matches validation/test):
 Loads: models/deepfake_b4_augoff.pth
 """
 
+import gc
 import os
-
 import cv2
 import torch
 
@@ -40,34 +40,36 @@ from preprocess import detect_face, preprocess_for_dataset
 # ---------------------------------------------------------------------------
 # Constants — fixed by the final experiment protocol
 # ---------------------------------------------------------------------------
-DEVICE = (
-    "cuda"
-    if torch.cuda.is_available()
-    else "cpu"
-)
+# Force CPU on Render to avoid CUDA/GPU memory allocation overhead
+DEVICE = torch.device("cpu")
 
-# Final best model — produced by the augoff (Experiment 3) training run.
 MODEL_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "models",
     "deepfake_b4_augoff.pth",
 )
 
-# Threshold selected ONLY on the validation set via Youden's J statistic.
-# The 60-image held-out test set was NOT used to tune this value.
 THRESHOLD = 0.55
 
+# Global singleton handle for lazy loading
+_model = None
 
-# ---------------------------------------------------------------------------
-# Model loading — fail loudly if the checkpoint is missing
-# ---------------------------------------------------------------------------
-if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(
-        f"Trained model not found: {MODEL_PATH}"
-    )
 
-_model = load_model(weights_path=MODEL_PATH, device=DEVICE)
-_model.eval()  # defense in depth — load_model also calls .eval()
+def get_model():
+    """
+    Lazy load the model when an endpoint is actually called.
+    Prevents startup OOM on free cloud instances (e.g., Render 512MB limit).
+    """
+    global _model
+    if _model is None:
+        if not os.path.exists(MODEL_PATH):
+            raise FileNotFoundError(
+                f"Trained model not found: {MODEL_PATH}"
+            )
+        _model = load_model(weights_path=MODEL_PATH, device=DEVICE)
+        _model.to(DEVICE)
+        _model.eval()
+    return _model
 
 
 # ---------------------------------------------------------------------------
@@ -82,33 +84,24 @@ def detect_image(image_path):
         image_path (str): absolute or relative path to an image file.
 
     Returns:
-        dict with keys:
-            prediction        : "REAL" or "FAKE"
-            confidence        : float in [0, 1] — probability of the predicted class
-            fake_probability  : float in [0, 1]
-            real_probability  : float in [0, 1]
-            threshold         : float — the decision threshold used
-            face_detected     : bool — whether Haar found a face
-            fallback_used     : bool — whether the full image was used as fallback
-
-    Raises:
-        FileNotFoundError : if image_path does not exist
-        ValueError        : if the image cannot be read by OpenCV
-        RuntimeError      : if model inference fails for any other reason
+        dict with prediction metrics.
     """
     if not os.path.exists(image_path):
         raise FileNotFoundError(
             f"Image not found: {image_path}"
         )
 
+    # Lazy-load model instance
+    model = get_model()
+
     image_tensor = preprocess_for_dataset(
         image_path,
-        training=False,   # never use training augmentation at inference time
+        training=False,
     ).unsqueeze(0).to(DEVICE)
 
-    raw_logit = _model(image_tensor)
+    raw_logit = model(image_tensor)
 
-    # Sigmoid EXACTLY once — never inside the model, never inside the loss.
+    # Sigmoid EXACTLY once
     fake_probability = torch.sigmoid(raw_logit).item()
     real_probability = 1.0 - fake_probability
 
@@ -119,14 +112,13 @@ def detect_image(image_path):
         prediction = "REAL"
         confidence = real_probability
 
-    # Re-run Haar separately (cheap) so we can report whether a face was
-    # detected. preprocess_for_dataset returns the same answer internally.
+    # Re-run Haar separately to check face detection
     image_bgr = cv2.imread(image_path)
     face = detect_face(image_bgr) if image_bgr is not None else None
     face_detected = face is not None
     fallback_used = not face_detected
 
-    return {
+    result = {
         "prediction": prediction,
         "confidence": float(confidence),
         "fake_probability": float(fake_probability),
@@ -135,6 +127,12 @@ def detect_image(image_path):
         "face_detected": bool(face_detected),
         "fallback_used": bool(fallback_used),
     }
+
+    # Clean up memory after every request
+    del image_tensor, raw_logit
+    gc.collect()
+
+    return result
 
 
 if __name__ == "__main__":
