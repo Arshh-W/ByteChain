@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+sqlalchemy
+aiofiles
+python-multipart
+opencv-python-headless
+torch
+torchvision

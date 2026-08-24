@@ -7,19 +7,24 @@ import hashlib
 import os
 import uuid
 import uvicorn
+import aiofiles
 
 try:
     from .ai_engine import analyze_image
 except ImportError:
     from ai_engine import analyze_image
 
-#Intializing FastAPI app
+# Initialize FastAPI app
 app = FastAPI(title="ByteChain Verify API")
 
-# CORS 
+# CORS setup: Allow local dev & live Netlify frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"], #development server( gotta change for deployment)
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "*"  # Allows live Netlify frontend domain
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,26 +34,23 @@ SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMP_DIR = os.path.join(SERVER_DIR, "temp_uploads")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-
-#  SQLite Database
+# SQLite Database setup
 DATABASE_URL = "sqlite:///./bytechain.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-#  Db Model
+# Database Model
 class MediaLog(Base):
     __tablename__ = "media_logs"
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String)
     file_hash = Column(String, unique=True, index=True)
     ai_confidence_score = Column(Float)
-    is_tampered = Column(Integer) # 0 or 1
+    is_tampered = Column(Integer)  # 0 or 1
     upload_timestamp = Column(DateTime, default=datetime.utcnow)
 
-
 Base.metadata.create_all(bind=engine)
-
 
 def get_db():
     db = SessionLocal()
@@ -57,73 +59,68 @@ def get_db():
     finally:
         db.close()
 
-
-#  Cryptographic Utility Function (SHA-256)
+# SHA-256 Utility
 async def compute_sha256_async(file_path: str) -> str:
-    """Calculates SHA-256 hash of a file async and returns the hex code."""
+    """Calculates SHA-256 hash of a file asynchronously."""
     sha256_hash = hashlib.sha256()
     async with aiofiles.open(file_path, "rb") as f:
         while chunk := await f.read(8192):
             sha256_hash.update(chunk)
     return sha256_hash.hexdigest()
 
-import aiofiles
+@app.get("/")
+def health_check():
+    return {"status": "ByteChain API operational", "timestamp": datetime.utcnow()}
 
-
-#Analyze route
-
+# Analysis Endpoint
 @app.post("/api/analyze")
 async def upload_and_analyze_image(file: UploadFile = File(...)):
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=415, detail="Only image files are supported")
-    
+
     file_id = str(uuid.uuid4())
     file_ext = os.path.splitext(file.filename)[1]
     safe_filename = f"{file_id}{file_ext}"
     temp_file_path = os.path.join(TEMP_DIR, safe_filename)
 
     try:
-        # 2. Temporarily store the file to disk
-        async with aiofiles.open(temp_file_path, 'wb') as out_file:
+        # Save uploaded file temporarily to disk
+        async with aiofiles.open(temp_file_path, "wb") as out_file:
             while content := await file.read(8192):
                 await out_file.write(content)
 
-        # Computing SHA hash of the uploaded file
+        # Calculate cryptographic SHA-256 hash
         file_hash = await compute_sha256_async(temp_file_path)
 
+        # Execute Deepfake ML Detection Model via ai_engine
         confidence_score, is_tampered_bool = analyze_image(temp_file_path)
-        
-        # Convert boolean to DB integer
         is_tampered_db = 1 if is_tampered_bool else 0
 
-        # Storing analsis to the db
+        # Save result to SQLite database
         db = SessionLocal()
-        
-        # Checking if hash already exists in DB
-        existing_log = db.query(MediaLog).filter(MediaLog.file_hash == file_hash).first()
-        if existing_log:
-            existing_log.upload_timestamp = datetime.utcnow()
-            db.commit()
-            log_entry = existing_log
-        else:
-            log_entry = MediaLog(
-                filename=file.filename,
-                file_hash=file_hash,
-                ai_confidence_score=confidence_score,
-                is_tampered=is_tampered_db
-            )
-            db.add(log_entry)
-            db.commit()
-            db.refresh(log_entry)
-        
-        db.close()
+        try:
+            existing_log = db.query(MediaLog).filter(MediaLog.file_hash == file_hash).first()
+            if existing_log:
+                existing_log.upload_timestamp = datetime.utcnow()
+                db.commit()
+            else:
+                log_entry = MediaLog(
+                    filename=file.filename,
+                    file_hash=file_hash,
+                    ai_confidence_score=confidence_score,
+                    is_tampered=is_tampered_db
+                )
+                db.add(log_entry)
+                db.commit()
+                db.refresh(log_entry)
+        finally:
+            db.close()
 
-
-        # Keep this response aligned with the confirmed frontend contract.
+        # Contract matching frontend expected response keys
         return {
             "filename": file.filename,
             "is_tampered": is_tampered_bool,
-            "confidence_score": confidence_score,
+            "confidence_score": round(confidence_score, 4),
             "sha256_hash": file_hash,
         }
 
@@ -131,11 +128,11 @@ async def upload_and_analyze_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         print(f"Error processing upload: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
     finally:
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
-
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
